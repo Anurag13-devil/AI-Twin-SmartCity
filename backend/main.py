@@ -40,3 +40,7 @@ def summary():
 @app.get("/traffic", response_model=list[TransportationDataSchema])
 def get_all_traffic(db: Session = Depends(get_db)):
     return crud.get_all_traffic(db)
+
+@app.get("/dashboard")
+def dashboard(db: Session = Depends(get_db)):
+    return crud.get_dashboard_summary(db)
