@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   Car,
   CloudSun,
@@ -7,10 +9,30 @@ import {
   Zap,
 } from "lucide-react";
 
-const cards = [
+import { getDashboardSummary } from "../../services/trafficService";
+
+function KpiCards() {
+  const [dashboard, setDashboard] = useState(null);
+
+  useEffect(() => {
+    async function loadDashboard() {
+      try {
+        const data = await getDashboardSummary();
+        setDashboard(data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    loadDashboard();
+  }, []);
+
+  const cards = [
   {
     title: "Traffic",
-    value: "1,248",
+    value: dashboard
+      ? dashboard.total_vehicles.toLocaleString()
+      : "...",
     subtitle: "Vehicles",
     icon: <Car size={28} />,
     color: "text-cyan-400",
@@ -52,10 +74,8 @@ const cards = [
   },
 ];
 
-function KpiCards() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-6">
-
       {cards.map((card) => (
         <div
           key={card.title}
@@ -73,11 +93,8 @@ function KpiCards() {
             hover:shadow-cyan-500/10
           "
         >
-
           <div className="flex justify-between items-center">
-
             <div>
-
               <p className="text-slate-400 text-sm">
                 {card.title}
               </p>
@@ -89,18 +106,14 @@ function KpiCards() {
               <p className="text-slate-500 text-sm mt-1">
                 {card.subtitle}
               </p>
-
             </div>
 
             <div className={card.color}>
               {card.icon}
             </div>
-
           </div>
-
         </div>
       ))}
-
     </div>
   );
 }

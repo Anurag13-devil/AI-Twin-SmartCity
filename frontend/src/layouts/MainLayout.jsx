@@ -1,6 +1,6 @@
 import Sidebar from "../components/layout/Sidebar";
 import Navbar from "../components/layout/Navbar";
-import Dashboard from "../pages/Dashboard/Dashboard";
+import { Outlet } from "react-router-dom";
 
 function MainLayout() {
   return (
@@ -11,7 +11,7 @@ function MainLayout() {
         <Navbar />
 
         <main className="flex-1 bg-slate-900 p-6 overflow-auto">
-          <Dashboard />
+          <Outlet />
         </main>
       </div>
     </div>
