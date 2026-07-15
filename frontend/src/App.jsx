@@ -20,8 +20,7 @@ function App() {
           <Route
             path="/traffic"
             element={<Traffic />}
-          />
-
+          />[
         </Route>
 
       </Routes>

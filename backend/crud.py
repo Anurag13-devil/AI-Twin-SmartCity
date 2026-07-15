@@ -3,25 +3,34 @@ from sqlalchemy import func
 from backend.models import TransportationData
 
 
+# ============================
 # Get all traffic records
+# ============================
 def get_all_traffic(db: Session):
     return db.query(TransportationData).all()
 
 
+# ============================
 # Get one traffic record
+# ============================
 def get_traffic_by_id(db: Session, record_id: int):
     return db.query(TransportationData).filter(
         TransportationData.Record_ID == record_id
     ).first()
 
 
+# ============================
 # Get total records
+# ============================
 def get_total_records(db: Session):
     return db.query(TransportationData).count()
 
 
+# ============================
 # Dashboard Summary
+# ============================
 def get_dashboard_summary(db: Session):
+
     total_records = db.query(TransportationData).count()
 
     total_vehicles = db.query(
@@ -46,19 +55,72 @@ def get_dashboard_summary(db: Session):
     }
 
 
-# Get traffic by weather
+# ============================
+# Search by Weather
+# ============================
 def get_traffic_by_weather(db: Session, weather: str):
     return db.query(TransportationData).filter(
         func.lower(TransportationData.Weather) == weather.lower()
     ).all()
 
-#Traffic density 
+
+# ============================
+# Search by Density
+# ============================
 def get_traffic_by_density(db: Session, density: str):
     return db.query(TransportationData).filter(
-        TransportationData.Traffic_Density.ilike(density)
+        func.lower(TransportationData.Traffic_Density) == density.lower()
     ).all()
 
-#Analytical APi
+
+# ============================
+# Search by Road ID
+# ============================
+def get_traffic_by_road(db: Session, road_id: str):
+    return (
+        db.query(TransportationData)
+        .filter(
+            TransportationData.Road_ID.ilike(f"%{road_id}%")
+        )
+        .all()
+    )
+
+
+# ======================================================
+# NEW COMBINED FILTER (Road + Weather + Density)
+# ======================================================
+def filter_traffic(
+    db: Session,
+    road_id: str = None,
+    weather: str = None,
+    density: str = None
+):
+
+    query = db.query(TransportationData)
+
+    if road_id:
+        query = query.filter(
+            TransportationData.Road_ID.ilike(f"%{road_id}%")
+        )
+
+    if weather:
+        query = query.filter(
+            func.lower(TransportationData.Weather)
+            == weather.lower()
+        )
+
+    if density:
+        query = query.filter(
+            func.lower(TransportationData.Traffic_Density)
+            == density.lower()
+        )
+
+    return query.all()
+
+
+# ============================
+# Weather Statistics
+# ============================
 def get_weather_statistics(db: Session):
 
     results = (
@@ -76,8 +138,9 @@ def get_weather_statistics(db: Session):
     }
 
 
-#Analytical vehicle 
-
+# ============================
+# Vehicle Statistics
+# ============================
 def get_vehicle_statistics(db: Session):
 
     results = (
@@ -94,8 +157,12 @@ def get_vehicle_statistics(db: Session):
         for vehicle, count in results
     }
 
-# Road condition 
+
+# ============================
+# Road Condition Statistics
+# ============================
 def get_road_condition_stats(db: Session):
+
     result = (
         db.query(
             TransportationData.Road_Condition,
@@ -109,8 +176,13 @@ def get_road_condition_stats(db: Session):
         row.Road_Condition: row.count
         for row in result
     }
-#Accident analysis
+
+
+# ============================
+# Accident Statistics
+# ============================
 def get_accident_stats(db: Session):
+
     result = (
         db.query(
             TransportationData.Accident,
@@ -124,14 +196,23 @@ def get_accident_stats(db: Session):
         row.Accident: row.count
         for row in result
     }
-#average speed
+
+
+# ============================
+# Average Speed by Weather
+# ============================
 def get_average_speed_by_weather(db: Session):
+
     result = (
         db.query(
             TransportationData.Weather,
-            func.avg(TransportationData.Avg_Speed).label("avg_speed")
+            func.avg(
+                TransportationData.Avg_Speed
+            ).label("avg_speed")
         )
-        .group_by(TransportationData.Weather)
+        .group_by(
+            TransportationData.Weather
+        )
         .all()
     )
 
@@ -140,14 +221,22 @@ def get_average_speed_by_weather(db: Session):
         for row in result
     }
 
-# vehicle count by road 
+
+# ============================
+# Vehicle Count by Road
+# ============================
 def get_vehicle_count_by_road(db: Session):
+
     result = (
         db.query(
             TransportationData.Road_ID,
-            func.sum(TransportationData.Vehicle_Count).label("total")
+            func.sum(
+                TransportationData.Vehicle_Count
+            ).label("total")
         )
-        .group_by(TransportationData.Road_ID)
+        .group_by(
+            TransportationData.Road_ID
+        )
         .all()
     )
 
@@ -156,16 +245,26 @@ def get_vehicle_count_by_road(db: Session):
         for row in result
     }
 
-#high risk roads 
+
+# ============================
+# High Risk Roads
+# ============================
 def get_high_risk_roads(db: Session):
+
     result = (
         db.query(
             TransportationData.Road_ID,
             func.count().label("accidents")
         )
-        .filter(TransportationData.Accident == "Yes")
-        .group_by(TransportationData.Road_ID)
-        .order_by(func.count().desc())
+        .filter(
+            TransportationData.Accident == "Yes"
+        )
+        .group_by(
+            TransportationData.Road_ID
+        )
+        .order_by(
+            func.count().desc()
+        )
         .limit(10)
         .all()
     )
